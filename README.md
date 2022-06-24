@@ -1,5 +1,6 @@
 # fitnesstrackr
 an API for our new fitness empire, FitnessTrac.kr, using node, express, and postgresql
+Also this is Phils fork of the repo and not the original
 
 ## Getting Started
 Install Packages
