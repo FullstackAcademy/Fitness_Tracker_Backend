@@ -11,13 +11,20 @@ async function addActivityToRoutine({
   count,
   duration,
 }) { 
-  const { rows: [routine_activities] } = await client.query(
-    `
-    INSERT INTO routine_activities("routineId", "activityId", duration, count)
-    VALUES($1, $2, $3, $4)
-    RETURNING *;
-    `, [routineId, activityId, duration, count]);
-return routine_activities;
+  const {rows:[activityToJoin]} = await client.query(`
+      SELECT *
+      FROM "routine_activities"
+      WHERE "routineId"=$1 AND "activityId"=$2;
+      `, [routineId, activityId])
+      
+    if(!activityToJoin){
+      const {rows:[activityForRoutine]} = await client.query(`
+      INSERT INTO "routine_activities"("routineId", "activityId", count, duration)
+      VALUES($1, $2, $3, $4)
+      RETURNING *;
+      `, [routineId, activityId, count, duration]);
+      return activityForRoutine;
+    }
     
 }
 
@@ -27,7 +34,7 @@ async function getRoutineActivitiesByRoutine(id) {
 }
 
 async function updateRoutineActivity ({id,count,duration}) {
-  const {rows: [routine_activity]} = await client.query('UPDATE routine_activities SET duration = $1, count= $2 WHERE id=$3', [duration,count,id])
+  const {rows: [routine_activity]} = await client.query('UPDATE routine_activities SET duration = $1, count= $2 WHERE "routineId"=$3', [duration,count,id])
   return routine_activity
 
 }
