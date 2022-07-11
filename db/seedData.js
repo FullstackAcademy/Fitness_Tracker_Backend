@@ -1,17 +1,78 @@
 // require in the database adapter functions as you write them (createUser, createActivity...)
-// const { } = require('./');
 const client = require('./client');
+const {getAllActivities,
+  getActivityById,
+  getActivityByName,
+  attachActivitiesToRoutines,
+  createActivity,
+  updateActivity,} = require('./activities')
+const {
+  getRoutineById,
+  getRoutinesWithoutActivities,
+  getAllRoutines,
+  getAllPublicRoutines,
+  getAllRoutinesByUser,
+  getPublicRoutinesByUser,
+  getPublicRoutinesByActivity,
+  createRoutine,
+  updateRoutine,
+  destroyRoutine,} =require('./routines')
+const { createUser,
+  getUserByUsername,
+  getUserById,
+  getUser } = require('./users')
+  const {getRoutineActivityById,
+    addActivityToRoutine,
+    getRoutineActivitiesByRoutine,
+    updateRoutineActivity,
+    destroyRoutineActivity,
+    canEditRoutineActivity,} =require('./routine_activities')
 
 async function dropTables() {
   console.log('Dropping All Tables...');
+  client.query('DROP TABLE IF EXISTS users CASCADE;')
+  client.query('DROP TABLE IF EXISTS activities CASCADE;')
+  client.query('DROP TABLE IF EXISTS routines CASCADE;')
+  client.query('DROP TABLE IF EXISTS routine_activities CASCADE;')
+
   // drop all tables, in the correct order
 
 }
 
 async function createTables() {
-  console.log("Starting to build tables...");
+  console.log("Starting to build tables...")
   // create all tables, in the correct order
-
+  try {
+    await client.query(`
+    CREATE TABLE users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL
+    );
+    CREATE TABLE activities (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      description TEXT NOT NULL
+    );
+    CREATE TABLE routines (
+      id SERIAL PRIMARY KEY,
+      "creatorId" INTEGER REFERENCES users(id),
+      "isPublic" BOOLEAN DEFAULT false,
+      name VARCHAR(255) UNIQUE NOT NULL,
+      goal TEXT NOT NULL
+    );
+    CREATE TABLE routine_activities (
+      id SERIAL PRIMARY KEY,
+      "routineId" INTEGER REFERENCES routines(id) ON DELETE CASCADE,
+      "activityId" INTEGER REFERENCES activities(id) ON DELETE CASCADE,
+      duration INTEGER,
+      count INTEGER
+    );
+    `)
+  } catch (error) {
+    console.error('Error building tables')
+    throw error;
+  }
 }
 
 /* 
